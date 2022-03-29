@@ -1,0 +1,6 @@
+@charset "UTF-8";
+
+header {height: 100px;}
+.gnb {width: 1000px; height: 100px; background-color: Gainsboro; margin: auto;}
+.contents {min-height: 500px;}
+footer {width: 1000px; height: 100px;  background-color: Gainsboro; margin: auto;}
