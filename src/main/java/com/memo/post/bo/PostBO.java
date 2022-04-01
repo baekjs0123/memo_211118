@@ -1,6 +1,7 @@
 package com.memo.post.bo;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -18,14 +19,51 @@ public class PostBO {
 	//private Logger logger = LoggerFactory.getLogger(PostBO.class);
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
+	private static final int POST_MAX_SIZE = 3; 
+
 	@Autowired
 	private PostDAO postDAO;
 	
 	@Autowired
 	private FileManagerService fileManagerService;
 	
-	public List<Post> getPostListByUserId(int userId) {
-		return postDAO.selectPostListByUserId(userId);
+	
+	public List<Post> getPostListByUserId(int userId, Integer prevId, Integer nextId) {
+		// 페이징 계산
+		// 10 9 8 | 7 6 5 | 4 3 2 | 1
+		// 7 6 5 페이지에서
+		// 1) 다음을 눌렀을 때 : nextId-5 5보다 작은 3개(DESC)
+		// 2) 이전을 눌렀을 때 : prevId-7 7보다 큰 3개(ASC) => 코드에서 list reverse
+		
+		String direction = null; // 방향
+		Integer standardId = null; // 기준 postId
+		if (prevId != null) {
+			// '이전' 클릭
+			direction = "prev";
+			standardId = prevId;
+			
+			// 7보다 큰 3개(ASC)	8 9 10 => reverse  시킨다. 10 9 8
+			List<Post> postList = postDAO.selectPostListByUserId(userId, direction, standardId, POST_MAX_SIZE);
+			Collections.reverse(postList);
+			return postList;
+		} else if (nextId != null) {
+			// '다음' 클릭
+			direction = "next";
+			standardId = nextId;
+		}
+		
+		// 처음 왔을 때 
+		return postDAO.selectPostListByUserId(userId, direction, standardId, POST_MAX_SIZE);
+	}
+	
+	public boolean isLastPage(int userId, int nextId) {
+		// 제일 작은 id 하나를 가져와서 nextId 비교하고 같으면 마지막 페이지이다.
+		return nextId == postDAO.selectPostIdByUserIdAndSort(userId, "ASC");
+	}
+	
+	public boolean isFirstPage(int userId, int prevId) {
+		// 제일 큰 id 하나를 가져와서 prevId 비교하고 같으면 첫번째 페이지이다. 
+		return prevId == postDAO.selectPostIdByUserIdAndSort(userId, "DESC");
 	}
 	
 	public Post getPostById(int postId) {

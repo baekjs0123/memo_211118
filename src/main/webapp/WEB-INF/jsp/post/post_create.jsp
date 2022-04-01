@@ -80,7 +80,7 @@ $(document).ready(function() {
 			, success: function(data) {
 				if (data.result == "success") {
 					alert("성공적으로 업로드 되었습니다.");
-					location.href = "/timeline/timeline_view";
+					location.href = "/post/post_list_view";
 				} else {
 					alret(data.error_message);
 				}
